@@ -9,10 +9,9 @@ dotenv.config()
 
 const app = express()
 
-// CORS: allow both local dev and production frontend
 app.use(cors({
   origin: [
-    'https://trae-dating-project.vercel.app', // production frontend
+    'https://trae-dating-project.vercel.app', 
     'http://localhost:5173'                   // local dev
   ],
   credentials: true
