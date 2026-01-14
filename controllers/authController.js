@@ -37,3 +37,68 @@ export const login = async (req, res) => {
     res.status(500).json({ message: err.message })
   }
 }
+export const protect = async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1]
+  if (!token) return res.status(401).json({ message: "No token" })
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET)
+  req.user = decoded
+  next()
+}
+
+export const adminOnly = async (req, res, next) => {
+  const user = await User.findById(req.user.id)
+  if (user.role !== "admin")
+    return res.status(403).json({ message: "Admin access only" })
+
+  next()
+}
+
+export const changeEmail = async (req, res) => {
+  try {
+    const { newEmail } = req.body
+    const userId = req.user.id
+
+    const emailExists = await User.findOne({ email: newEmail })
+    if (emailExists) {
+      return res.status(400).json({ message: "Email already in use" })
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { email: newEmail },
+      { new: true }
+    )
+
+    res.json({
+      message: "Email updated successfully",
+      email: user.email
+    })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+// Change Password
+export const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body
+    const userId = req.user.id
+
+    const user = await User.findById(userId)
+    if (!user) return res.status(404).json({ message: "User not found" })
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password)
+    if (!isMatch) {
+      return res.status(400).json({ message: "Old password is incorrect" })
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    user.password = hashedPassword
+    await user.save()
+
+    res.json({ message: "Password updated successfully" })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
