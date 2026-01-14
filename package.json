@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Syed Turab Ali Shah",
   "license": "ISC",
   "description": "Muslim Marriage Bureau Backend API",
   "dependencies": {
