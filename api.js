@@ -5,7 +5,8 @@ import authRoutes from './routes/authRoutes.js'
 const app = express()
 
 app.use(cors({
-  origin: 'https://trae-dating-project.vercel.app/login',
+  origin: ['https://trae-dating-project.vercel.app', // production frontend
+    'http://localhost:5173'],
   credentials: true
 }))
 
