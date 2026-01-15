@@ -91,14 +91,11 @@ export const updateProfileStatus = async (req, res) => {
 
 export const deleteProfile = async (req, res) => {
   try {
-    const profile = await Profile.findOneAndDelete({ user: req.user.id });
+    const profile = await Profile.findOneAndDelete({ user: req.user.id })
+    if (!profile) return res.status(404).json({ message: "Profile not found" })
 
-    if (!profile) {
-      return res.status(404).json({ message: "Profile not found" });
-    }
-
-    res.json({ message: "Profile deleted successfully" });
+    res.json({ message: "Account deleted successfully" })
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message })
   }
-};
+}
