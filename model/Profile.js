@@ -17,7 +17,7 @@ const profileSchema = new mongoose.Schema(
 
     sect: {
       type: String,
-      enum: ["Sunni", "Shia", "Ahle Hadith", "Deobandi", "Barelvi", ""],
+      enum: ["Sunni", "Shia", "Ahle Hadith", "Deobandi", "Barelvi", "Prefer Not to Say"],
       required: function () {
         return this.isMuslim === true
       },
