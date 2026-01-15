@@ -43,6 +43,31 @@ const profileSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    interests: {
+      type: [String], 
+      default: []
+    },
+
+    religionPreference: {
+      type: String,
+      enum: ["Muslim", "Non-Muslim", "Any"],
+      default: "Any"
+    },
+
+    about: {
+      type: String,
+      default: ""
+    },
+
+    height: {
+      type: Number, 
+      default: null
+    },
+
+    profession: {
+      type: String,
+      default: ""
+    },
 
     image: {
       type: String,

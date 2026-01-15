@@ -1,5 +1,6 @@
 import Profile from "../model/Profile.js"
 
+// CREATE PROFILE
 export const createProfile = async (req, res) => {
   try {
     const already = await Profile.findOne({ user: req.user.id })
@@ -19,6 +20,7 @@ export const createProfile = async (req, res) => {
   }
 }
 
+// GET MY PROFILE
 export const getMyProfile = async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id })
@@ -69,6 +71,7 @@ export const getApprovedProfiles = async (req, res) => {
   }
 }
 
+// UPDATE PROFILE STATUS (ADMIN)
 export const updateProfileStatus = async (req, res) => {
   try {
     const { status } = req.body
@@ -89,6 +92,7 @@ export const updateProfileStatus = async (req, res) => {
   }
 }
 
+// DELETE PROFILE
 export const deleteProfile = async (req, res) => {
   try {
     const profile = await Profile.findOneAndDelete({ user: req.user.id })
