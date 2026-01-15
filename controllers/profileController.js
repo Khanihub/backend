@@ -1,4 +1,4 @@
-import Profile from "../model/Profie.js"
+import Profile from "../model/Profile.js"
 
 export const createProfile = async (req, res) => {
   try {
