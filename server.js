@@ -4,7 +4,9 @@ import dotenv from "dotenv"
 import connectDB from "./config/db.js"
 import authRoutes from "./routes/authRoutes.js"
 import profileRoutes from "./routes/profileRoutes.js"
-
+import matchRoutes from "./routes/matchRoutes.js"
+import messageRoutes from "./routes/messageRoutes.js"
+import interestRoutes from "./routes/intrestRoutes.js"
 dotenv.config()
 
 const app = express()
@@ -23,6 +25,10 @@ app.use(express.json())
 app.use("/api/auth", authRoutes)
 app.use("/api/profiles", profileRoutes)
 app.use("/uploads", express.static("uploads"))
+app.use("/api/interests", interestRoutes)
+app.use("/api/matches", matchRoutes)
+app.use("/api/messages", messageRoutes)
+
 
 // Optional: test route
 app.get("/", (req, res) => res.send("Backend is live"))
