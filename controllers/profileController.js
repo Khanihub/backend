@@ -32,7 +32,13 @@ export const getMyProfile = async (req, res) => {
 // UPDATE PROFILE
 export const updateProfile = async (req, res) => {
   try {
-    const updatedData = { ...req.body };
+    // Convert age to Number and isMuslim to boolean
+    const updatedData = {
+      ...req.body,
+      age: req.body.age ? Number(req.body.age) : undefined,
+      isMuslim: req.body.isMuslim === "true" || req.body.isMuslim === true
+    };
+
     if (req.file) updatedData.image = `/uploads/${req.file.filename}`;
 
     const profile = await Profile.findOneAndUpdate(
@@ -45,6 +51,7 @@ export const updateProfile = async (req, res) => {
 
     res.json(profile);
   } catch (err) {
+    console.error("Update Profile Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
