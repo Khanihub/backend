@@ -9,6 +9,11 @@ const profileSchema = new mongoose.Schema(
       unique: true
     },
 
+    fullName: {
+      type: String,
+      required: [true, "Full name is required"]
+    },
+
     isMuslim: {
       type: Boolean,
       required: true,
@@ -17,41 +22,35 @@ const profileSchema = new mongoose.Schema(
 
     sect: {
       type: String,
-      enum: ["Sunni", "Shia", "Ahle Hadith", "Deobandi", "Barelvi", "Prefer Not to Say"],
-      required: function () {
-        return this.isMuslim === true
-      },
+      enum: ["Sunni", "Shia", "Ahle Hadith", "Deobandi", "Barelvi", "Prefer Not to Say", ""],
       default: ""
     },
 
     gender: {
       type: String,
-      required: true
+      required: [true, "Gender is required"],
+      enum: ["male", "female", "other"]
     },
 
     age: {
       type: Number,
-      required: true
+      required: [true, "Age is required"],
+      min: [18, "Age must be at least 18"]
     },
 
     city: {
       type: String,
-      required: true
+      required: [true, "City is required"]
     },
 
     education: {
       type: String,
-      required: true
-    },
-    interests: {
-      type: [String], 
-      default: []
+      required: [true, "Education is required"]
     },
 
-    religionPreference: {
-      type: String,
-      enum: ["Muslim", "Non-Muslim", "Any"],
-      default: "Any"
+    interests: {
+      type: [String],
+      default: []
     },
 
     about: {
@@ -60,7 +59,7 @@ const profileSchema = new mongoose.Schema(
     },
 
     height: {
-      type: Number, 
+      type: Number,
       default: null
     },
 

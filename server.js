@@ -32,6 +32,12 @@ app.use("/api/interests", interestRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/messages", messageRoutes);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
+
 // Test route
 app.get("/", (req, res) => res.send("Backend is live"));
 
