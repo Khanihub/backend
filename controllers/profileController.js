@@ -3,30 +3,48 @@ import Profile from "../model/Profile.js";
 // CREATE PROFILE
 export const createProfile = async (req, res) => {
   try {
-    console.log('Create profile request body:', req.body);
+    console.log('=== CREATE PROFILE REQUEST ===');
+    console.log('User ID:', req.user?.id);
+    console.log('Request Body:', req.body);
+    console.log('File:', req.file);
     
+    // Check if profile already exists
     const exists = await Profile.findOne({ user: req.user.id });
-    if (exists) return res.status(400).json({ message: "Profile already exists" });
+    if (exists) {
+      console.log('Profile already exists for user:', req.user.id);
+      return res.status(400).json({ message: "Profile already exists" });
+    }
 
-    // Process data
+    // Process the data
     const profileData = {
-      ...req.body,
       user: req.user.id,
-      age: req.body.age ? Number(req.body.age) : undefined,
-      height: req.body.height ? Number(req.body.height) : null,
+      fullName: req.body.fullName,
+      gender: req.body.gender,
+      age: req.body.age ? parseInt(req.body.age) : undefined,
       isMuslim: req.body.isMuslim === "true" || req.body.isMuslim === true,
+      sect: req.body.sect || "",
+      city: req.body.city,
+      education: req.body.education,
+      profession: req.body.profession || "",
+      about: req.body.about || "",
       interests: req.body.interests ? 
         (typeof req.body.interests === 'string' ? 
-          req.body.interests.split(',').map(i => i.trim()) : 
-          req.body.interests) : []
+          req.body.interests.split(',').map(i => i.trim()).filter(i => i) : 
+          req.body.interests) : [],
+      height: req.body.height ? parseInt(req.body.height) : null
     };
 
-    if (req.file) profileData.image = `/uploads/${req.file.filename}`;
+    if (req.file) {
+      profileData.image = `/uploads/${req.file.filename}`;
+    }
 
-    // Check required fields
+    console.log('Processed Profile Data:', profileData);
+
+    // Validate required fields
     const requiredFields = ['fullName', 'gender', 'age', 'city', 'education'];
     for (const field of requiredFields) {
       if (!profileData[field] && profileData[field] !== 0) {
+        console.log(`Missing required field: ${field}`);
         return res.status(400).json({ 
           message: `${field} is required`,
           field: field 
@@ -34,13 +52,120 @@ export const createProfile = async (req, res) => {
       }
     }
 
+    // Create profile
     const profile = await Profile.create(profileData);
+    console.log('Profile created successfully:', profile._id);
+    
     res.status(201).json(profile);
   } catch (err) {
-    console.error("Create Profile Error:", err);
+    console.error("=== CREATE PROFILE ERROR ===");
+    console.error("Error Name:", err.name);
+    console.error("Error Message:", err.message);
+    console.error("Error Stack:", err.stack);
     
     if (err.name === 'ValidationError') {
       const messages = Object.values(err.errors).map(val => val.message);
+      console.log('Validation Errors:', messages);
+      return res.status(400).json({ 
+        message: 'Validation Error', 
+        errors: messages 
+      });
+    }
+    
+    if (err.code === 11000) {
+      return res.status(400).json({ 
+        message: 'Profile already exists for this user' 
+      });
+    }
+    
+    res.status(500).json({ 
+      message: 'Server error occurred while creating profile',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined 
+    });
+  }
+};
+
+// UPDATE PROFILE
+export const updateProfile = async (req, res) => {
+  try {
+    console.log('=== UPDATE PROFILE REQUEST ===');
+    console.log('User ID:', req.user?.id);
+    console.log('Request Body:', req.body);
+    console.log('File:', req.file);
+    
+    // Process the data
+    const updatedData = {
+      fullName: req.body.fullName,
+      gender: req.body.gender,
+      age: req.body.age ? parseInt(req.body.age) : undefined,
+      isMuslim: req.body.isMuslim === "true" || req.body.isMuslim === true,
+      sect: req.body.isMuslim === "true" || req.body.isMuslim === true ? (req.body.sect || "") : "",
+      city: req.body.city,
+      education: req.body.education,
+      profession: req.body.profession || "",
+      about: req.body.about || "",
+      interests: req.body.interests ? 
+        (typeof req.body.interests === 'string' ? 
+          req.body.interests.split(',').map(i => i.trim()).filter(i => i) : 
+          req.body.interests) : [],
+      height: req.body.height ? parseInt(req.body.height) : null
+    };
+
+    if (req.file) {
+      updatedData.image = `/uploads/${req.file.filename}`;
+    }
+
+    console.log('Processed Update Data:', updatedData);
+
+    // Validate required fields
+    const requiredFields = ['fullName', 'gender', 'age', 'city', 'education'];
+    for (const field of requiredFields) {
+      if (!updatedData[field] && updatedData[field] !== 0) {
+        console.log(`Missing required field: ${field}`);
+        return res.status(400).json({ 
+          message: `${field} is required`,
+          field: field 
+        });
+      }
+    }
+
+    // Check if profile exists
+    let profile = await Profile.findOne({ user: req.user.id });
+    
+    if (!profile) {
+      console.log('Profile not found, creating new one...');
+      // Create new profile if doesn't exist
+      profile = await Profile.create({
+        ...updatedData,
+        user: req.user.id
+      });
+      console.log('New profile created:', profile._id);
+      return res.status(201).json(profile);
+    }
+
+    // Update existing profile
+    console.log('Updating existing profile:', profile._id);
+    profile = await Profile.findOneAndUpdate(
+      { user: req.user.id },
+      updatedData,
+      { 
+        new: true, 
+        runValidators: true,
+        upsert: false // Don't create new if doesn't exist
+      }
+    );
+
+    console.log('Profile updated successfully');
+    res.json(profile);
+  } catch (err) {
+    console.error("=== UPDATE PROFILE ERROR ===");
+    console.error("Error Name:", err.name);
+    console.error("Error Message:", err.message);
+    console.error("Error Stack:", err.stack);
+    
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      console.log('Validation Errors:', messages);
       return res.status(400).json({ 
         message: 'Validation Error', 
         errors: messages 
@@ -48,7 +173,7 @@ export const createProfile = async (req, res) => {
     }
     
     res.status(500).json({ 
-      message: 'Server error', 
+      message: 'Server error occurred while updating profile',
       error: process.env.NODE_ENV === 'development' ? err.message : undefined 
     });
   }
@@ -62,79 +187,6 @@ export const getMyProfile = async (req, res) => {
     res.json(profile);
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }
-};
-
-// UPDATE PROFILE
-export const updateProfile = async (req, res) => {
-  try {
-    console.log('Update profile request body:', req.body);
-    console.log('File received:', req.file);
-
-    // Process data
-    const updatedData = {
-      ...req.body,
-      age: req.body.age ? Number(req.body.age) : undefined,
-      height: req.body.height ? Number(req.body.height) : null,
-      isMuslim: req.body.isMuslim === "true" || req.body.isMuslim === true,
-      interests: req.body.interests ? 
-        (typeof req.body.interests === 'string' ? 
-          req.body.interests.split(',').map(i => i.trim()) : 
-          req.body.interests) : []
-    };
-
-    if (req.file) {
-      updatedData.image = `/uploads/${req.file.filename}`;
-    }
-
-    // Check required fields
-    const requiredFields = ['fullName', 'gender', 'age', 'city', 'education'];
-    for (const field of requiredFields) {
-      if (!updatedData[field] && updatedData[field] !== 0) {
-        return res.status(400).json({ 
-          message: `${field} is required`,
-          field: field 
-        });
-      }
-    }
-
-    // Check if profile exists
-    let profile = await Profile.findOne({ user: req.user.id });
-    
-    if (!profile) {
-      // Create new profile if doesn't exist (for PUT /me)
-      profile = await Profile.create({
-        ...updatedData,
-        user: req.user.id
-      });
-      return res.status(201).json(profile);
-    }
-
-    // Update existing profile
-    profile = await Profile.findOneAndUpdate(
-      { user: req.user.id },
-      updatedData,
-      { new: true, runValidators: true }
-    );
-
-    res.json(profile);
-  } catch (err) {
-    console.error("Update Profile Error:", err);
-    
-    // Mongoose validation error
-    if (err.name === 'ValidationError') {
-      const messages = Object.values(err.errors).map(val => val.message);
-      return res.status(400).json({ 
-        message: 'Validation Error', 
-        errors: messages 
-      });
-    }
-    
-    // Other errors
-    res.status(500).json({ 
-      message: 'Server error', 
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined 
-    });
   }
 };
 
