@@ -13,6 +13,15 @@ connectDB();
 
 const app = express();
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  if (req.method === 'POST' || req.method === 'PUT') {
+    console.log('Request Body:', req.body);
+  }
+  next();
+});
+
 app.use(cors({
   origin: [
     'https://trae-dating-project.vercel.app', 
@@ -32,10 +41,23 @@ app.use("/api/interests", interestRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/messages", messageRoutes);
 
+// Test routes for debugging
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend is working", timestamp: new Date().toISOString() });
+});
+
+app.post("/api/test-upload", (req, res) => {
+  console.log("Test upload request body:", req.body);
+  res.json({ success: true, received: req.body });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  console.error('Global Error Handler:', err);
+  res.status(500).json({ 
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 // Test route

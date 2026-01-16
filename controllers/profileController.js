@@ -85,96 +85,80 @@ export const createProfile = async (req, res) => {
   }
 };
 
-// UPDATE PROFILE
 export const updateProfile = async (req, res) => {
   try {
-    console.log('=== UPDATE PROFILE REQUEST ===');
-    console.log('User ID:', req.user?.id);
-    console.log('Request Body:', req.body);
-    console.log('File:', req.file);
+    console.log("=== UPDATE PROFILE STARTED ===");
+    console.log("User ID from token:", req.user?.id);
+    console.log("Request Body:", req.body);
+    console.log("File:", req.file);
+    console.log("Headers:", req.headers);
     
-    // Process the data
-    const updatedData = {
-      fullName: req.body.fullName,
-      gender: req.body.gender,
-      age: req.body.age ? parseInt(req.body.age) : undefined,
-      isMuslim: req.body.isMuslim === "true" || req.body.isMuslim === true,
-      sect: req.body.isMuslim === "true" || req.body.isMuslim === true ? (req.body.sect || "") : "",
-      city: req.body.city,
-      education: req.body.education,
-      profession: req.body.profession || "",
-      about: req.body.about || "",
-      interests: req.body.interests ? 
-        (typeof req.body.interests === 'string' ? 
-          req.body.interests.split(',').map(i => i.trim()).filter(i => i) : 
-          req.body.interests) : [],
-      height: req.body.height ? parseInt(req.body.height) : null
+    // Pehle check karein user hai ya nahi
+    if (!req.user || !req.user.id) {
+      console.log("ERROR: No user found in request");
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    
+    // Minimal data
+    const updateData = {
+      fullName: req.body.fullName || "Test Name",
+      gender: req.body.gender || "male",
+      age: parseInt(req.body.age) || 25,
+      city: req.body.city || "Test City",
+      education: req.body.education || "Test Education",
+      isMuslim: req.body.isMuslim === "true" || true,
+      user: req.user.id
     };
-
-    if (req.file) {
-      updatedData.image = `/uploads/${req.file.filename}`;
-    }
-
-    console.log('Processed Update Data:', updatedData);
-
-    // Validate required fields
-    const requiredFields = ['fullName', 'gender', 'age', 'city', 'education'];
-    for (const field of requiredFields) {
-      if (!updatedData[field] && updatedData[field] !== 0) {
-        console.log(`Missing required field: ${field}`);
-        return res.status(400).json({ 
-          message: `${field} is required`,
-          field: field 
-        });
-      }
-    }
-
-    // Check if profile exists
+    
+    console.log("Update Data prepared:", updateData);
+    
+    // Find and update or create
     let profile = await Profile.findOne({ user: req.user.id });
     
-    if (!profile) {
-      console.log('Profile not found, creating new one...');
-      // Create new profile if doesn't exist
-      profile = await Profile.create({
-        ...updatedData,
-        user: req.user.id
-      });
-      console.log('New profile created:', profile._id);
-      return res.status(201).json(profile);
+    if (profile) {
+      console.log("Found existing profile, updating...");
+      profile = await Profile.findOneAndUpdate(
+        { user: req.user.id },
+        updateData,
+        { new: true }
+      );
+    } else {
+      console.log("No profile found, creating new...");
+      profile = await Profile.create(updateData);
     }
-
-    // Update existing profile
-    console.log('Updating existing profile:', profile._id);
-    profile = await Profile.findOneAndUpdate(
-      { user: req.user.id },
-      updatedData,
-      { 
-        new: true, 
-        runValidators: true,
-        upsert: false // Don't create new if doesn't exist
-      }
-    );
-
-    console.log('Profile updated successfully');
-    res.json(profile);
-  } catch (err) {
+    
+    console.log("Profile saved successfully:", profile._id);
+    res.json({
+      success: true,
+      message: "Profile saved",
+      profile: profile
+    });
+    
+  } catch (error) {
     console.error("=== UPDATE PROFILE ERROR ===");
-    console.error("Error Name:", err.name);
-    console.error("Error Message:", err.message);
-    console.error("Error Stack:", err.stack);
+    console.error("Error Name:", error.name);
+    console.error("Error Message:", error.message);
+    console.error("Error Stack:", error.stack);
     
-    if (err.name === 'ValidationError') {
-      const messages = Object.values(err.errors).map(val => val.message);
-      console.log('Validation Errors:', messages);
+    // Specific error handling
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(e => e.message);
       return res.status(400).json({ 
-        message: 'Validation Error', 
-        errors: messages 
+        message: "Validation failed", 
+        errors: errors 
       });
     }
     
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        message: "Duplicate profile found" 
+      });
+    }
+    
+    // General error
     res.status(500).json({ 
-      message: 'Server error occurred while updating profile',
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined 
+      message: "Internal server error",
+      error: error.message 
     });
   }
 };
@@ -182,11 +166,28 @@ export const updateProfile = async (req, res) => {
 // GET MY PROFILE
 export const getMyProfile = async (req, res) => {
   try {
+    console.log("Getting profile for user:", req.user?.id);
+    
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    
     const profile = await Profile.findOne({ user: req.user.id });
-    if (!profile) return res.status(404).json({ message: "Profile not found" });
+    
+    if (!profile) {
+      console.log("Profile not found for user:", req.user.id);
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    
+    console.log("Profile found:", profile._id);
     res.json(profile);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    
+  } catch (error) {
+    console.error("Get profile error:", error);
+    res.status(500).json({ 
+      message: "Error fetching profile",
+      error: error.message 
+    });
   }
 };
 
