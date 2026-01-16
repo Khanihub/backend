@@ -1,42 +1,39 @@
-import express from "express"
-import cors from "cors"
-import dotenv from "dotenv"
-import connectDB from "./config/db.js"
-import authRoutes from "./routes/authRoutes.js"
-import profileRoutes from "./routes/profileRoutes.js"
-import matchRoutes from "./routes/matchRoutes.js"
-import messageRoutes from "./routes/messageRoutes.js"
-import interestRoutes from "./routes/intrestRoutes.js"
-dotenv.config()
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import connectDB from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import matchRoutes from "./routes/matchRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
+import interestRoutes from "./routes/intrestRoutes.js";
 
-const app = express()
+dotenv.config();
+connectDB();
+
+const app = express();
 
 app.use(cors({
   origin: [
     'https://trae-dating-project.vercel.app', 
-    'http://localhost:5173'                   // local dev
+    'http://localhost:5173'
   ],
   credentials: true
-}))
+}));
 
-app.use(express.json())
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
 
 // Routes
-app.use("/api/auth", authRoutes)
-app.use("/api/profiles", profileRoutes)
-app.use("/uploads", express.static("uploads"))
-app.use("/api/interests", interestRoutes)
-app.use("/api/matches", matchRoutes)
-app.use("/api/messages", messageRoutes)
+app.use("/api/auth", authRoutes);
+app.use("/api/profiles", profileRoutes);
+app.use("/api/interests", interestRoutes);
+app.use("/api/matches", matchRoutes);
+app.use("/api/messages", messageRoutes);
 
+// Test route
+app.get("/", (req, res) => res.send("Backend is live"));
 
-// Optional: test route
-app.get("/", (req, res) => res.send("Backend is live"))
-
-const PORT = process.env.PORT || 5000
-
-connectDB()
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

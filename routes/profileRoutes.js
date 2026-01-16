@@ -1,4 +1,4 @@
-import express from "express"
+import express from "express";
 import {
   createProfile,
   getMyProfile,
@@ -6,28 +6,28 @@ import {
   getApprovedProfiles,
   updateProfileStatus,
   deleteProfile
-} from "../controllers/profileController.js"
-import { protect, adminOnly } from "../middleware/authMiddleware.js"
-import upload from "../middleware/upload.js"
+} from "../controllers/profileController.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import upload from "../middleware/upload.js";
 
-const router = express.Router()
+const router = express.Router();
 
 // Create new profile
-router.post("/", protect, upload.single("image"), createProfile)
+router.post("/", protect, upload.single("image"), createProfile);
 
 // Get my profile
-router.get("/me", protect, getMyProfile)
+router.get("/me", protect, getMyProfile);
 
 // Update my profile
-router.put("/me", protect, upload.single("image"), updateProfile)
+router.put("/me", protect, upload.single("image"), updateProfile);
 
-// Delete my profile/account
-router.delete("/delete", protect, deleteProfile)
+// Delete profile
+router.delete("/delete", protect, deleteProfile);
 
-// Get all approved profiles
-router.get("/approved", getApprovedProfiles)
+// Get approved profiles
+router.get("/approved", getApprovedProfiles);
 
 // Admin: approve/reject profiles
-router.put("/:id/status", protect, adminOnly, updateProfileStatus)
+router.put("/:id/status", protect, adminOnly, updateProfileStatus);
 
-export default router
+export default router;
