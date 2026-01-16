@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User from "../model/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -17,6 +17,26 @@ export const register = async (req, res) => {
     res.status(201).json({ user: { id: user._id, name, email, religion }, token });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+export const protect = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Not authorized" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select("-password");
+    next();
+  } catch (err) {
+    res.status(401).json({ message: "Not authorized, token failed" });
+  }
+};
+
+export const adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    res.status(403).json({ message: "Admin access only" });
   }
 };
 

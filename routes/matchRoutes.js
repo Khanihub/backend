@@ -1,10 +1,8 @@
-import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
-import { getMyMatches, sendInterest } from "../controllers/MatchController.js";
+import express from "express"
+import { protect } from "../middleware/authMiddleware.js"
+import { getMyMatches } from "../controllers/MatchController.js"
 
-const router = express.Router();
+const router = express.Router()
+router.get("/", protect, getMyMatches)
 
-router.get("/", protect, getMyMatches);
-router.post("/interest/:userId", protect, sendInterest);
-
-export default router;
+export default router
