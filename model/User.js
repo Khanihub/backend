@@ -6,12 +6,6 @@ const userSchema = new mongoose.Schema(
     email: { type: String, unique: true },
     password: String,
     role: { type: String, default: "user" },
-    religion: { 
-      type: String, 
-      enum: ["Muslim", "Non-Muslim", "Prefer Not to Say"], 
-      required: true 
-    },
-    guardianContact: { type: String } // optional for Muslim users
   },
   { timestamps: true }
 );
