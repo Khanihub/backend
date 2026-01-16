@@ -32,15 +32,10 @@ export const getMyProfile = async (req, res) => {
     res.status(500).json({ message: err.message })
   }
 }
-
-// UPDATE PROFILE (WITH IMAGE SUPPORT)
 export const updateProfile = async (req, res) => {
   try {
     const updatedData = { ...req.body }
-
-    if (req.file) {
-      updatedData.image = `/uploads/${req.file.filename}`
-    }
+    if (req.file) updatedData.image = `/uploads/${req.file.filename}`
 
     const profile = await Profile.findOneAndUpdate(
       { user: req.user.id },
@@ -48,16 +43,13 @@ export const updateProfile = async (req, res) => {
       { new: true }
     )
 
-    if (!profile) {
-      return res.status(404).json({ message: "Profile not found" })
-    }
+    if (!profile) return res.status(404).json({ message: "Profile not found" })
 
     res.json(profile)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
 }
-
 // GET APPROVED PROFILES
 export const getApprovedProfiles = async (req, res) => {
   try {
