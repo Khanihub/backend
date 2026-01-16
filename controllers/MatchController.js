@@ -27,6 +27,7 @@ export const getMyMatches = async (req, res) => {
   }
 };
 
+// Send interest to another user
 export const sendInterest = async (req, res) => {
   const senderId = req.user.id;
   const receiverId = req.params.userId;

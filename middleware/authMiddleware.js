@@ -4,17 +4,17 @@ import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, religion, guardianContact } = req.body;
+    const { name, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ name, email, password: hashedPassword, religion, guardianContact });
+    const user = await User.create({ name, email, password: hashedPassword});
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-    res.status(201).json({ user: { id: user._id, name, email, religion }, token });
+    res.status(201).json({ user: { id: user._id, name, email }, token });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
