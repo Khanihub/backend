@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 app.use(cors({
   origin: [
     'https://trae-dating-project.vercel.app', 
-    'http://localhost:5173'
+    'http://localhost:5174'
   ],
   credentials: true
 }));
